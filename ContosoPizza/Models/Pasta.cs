@@ -8,5 +8,5 @@ public class Pasta
     [Required]
     public string? Name { get; set; }
     [Range(0.01, 9999.99)]
-    public decimal Price{ get; set; }
+    public decimal Price { get; set; }
 }

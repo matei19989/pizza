@@ -1,0 +1,5 @@
+{
+    "appService.preDeployTask": "publish-release",
+    "appService.deploySubpath": "ContosoPizza\\bin\\Release\\net8.0\\publish",
+    "appService.defaultWebAppToDeploy": "/subscriptions/55f2856b-0a37-42b6-a57e-fcfacc65bb0c/resourceGroups/asp-spark2025-pizza-dev/providers/Microsoft.Web/sites/contosopizzadev22222"
+}
