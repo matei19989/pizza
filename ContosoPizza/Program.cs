@@ -4,22 +4,27 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
 
-// Configure SQLite database (use /tmp for Azure App Service)
-string dbPath = builder.Environment.IsDevelopment() 
-    ? "Data Source=ContosoPizza.db" 
-    : "Data Source=/tmp/ContosoPizza.db";
-
-builder.Services.AddDbContext<PizzaContext>(options =>
-    options.UseSqlite(dbPath));
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDbContext<PizzaContext>(options =>
+        options.UseSqlite("Data Source=ContosoPizza.db"));
+    Console.WriteLine("Using SQLite for development");
+}
+else
+{
+    // Use Azure SQL Database for production
+    var connectionString = builder.Configuration.GetConnectionString("AzureSqlConnection");
+    builder.Services.AddDbContext<PizzaContext>(options =>
+        options.UseSqlServer(connectionString));
+    Console.WriteLine("Using Azure SQL Database for production");
+}
 
 builder.Services.AddScoped<PizzaService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -32,18 +37,25 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapRazorPages();
 
-// CRITICAL: Create database and tables on startup
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<PizzaContext>();
-    try 
+    try
     {
-        context.Database.EnsureCreated();
-        Console.WriteLine("Database and tables created successfully!");
+        if (app.Environment.IsDevelopment())
+        {
+            context.Database.EnsureCreated();
+            Console.WriteLine("SQLite database initialized successfully!");
+        }
+        else
+        {
+            context.Database.Migrate();
+            Console.WriteLine("Azure SQL Database migrated successfully!");
+        }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Database error: {ex.Message}");
+        Console.WriteLine($"Database initialization failed: {ex.Message}");
     }
 }
 
